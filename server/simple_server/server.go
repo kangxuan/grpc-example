@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	pb "gprc-example/proto"
 	"log"
 	"net"
+	"os"
 	"strconv"
 )
 
@@ -27,10 +30,35 @@ const PORT = 9001
 
 func main() {
 	// 根据服务端输入的证书文件和密钥构造 TLS 凭证
-	c, err := credentials.NewServerTLSFromFile("../../conf/server.pem", "../../conf/server.key")
+	//c, err := credentials.NewServerTLSFromFile("../../conf/server.pem", "../../conf/server.key")
+	//if err != nil {
+	//	log.Fatalf("credentials.NewServerTLSFromFile err: %v", err)
+	//}
+
+	// 基于CA的TSL证书认证
+	// 从证书相关文件中读取和解析信息，得到证书公钥、密钥对
+	cert, err := tls.LoadX509KeyPair("../../conf/server/server.pem", "../../conf/server/server.key")
 	if err != nil {
-		log.Fatalf("credentials.NewServerTLSFromFile err: %v", err)
+		log.Fatalf("tls.LoadX509KeyPair err: %v", err)
 	}
+
+	// 创建一个新的、空的 CertPool
+	certPool := x509.NewCertPool()
+	ca, err := os.ReadFile("../../conf/ca.pem")
+	if err != nil {
+		log.Fatalf("os.ReadFile err: %v", err)
+	}
+	// 尝试解析所传入的 PEM 编码的证书。如果解析成功会将其加到 CertPool 中，便于后面的使用
+	if ok := certPool.AppendCertsFromPEM(ca); !ok {
+		log.Fatalf("certPool.AppendCertsFromPEM err")
+	}
+
+	// 构建基于 TLS 的 TransportCredentials 选项
+	c := credentials.NewTLS(&tls.Config{
+		Certificates: []tls.Certificate{cert},        // 设置证书链，允许包含一个或多个
+		ClientAuth:   tls.RequireAndVerifyClientCert, // 要求必须校验客户端的证书
+		ClientCAs:    certPool,                       // 设置根证书的集合，校验方式使用 ClientAuth 中设定的模式
+	})
 
 	// 创建一个grpc服务器
 	// grpc.Creds()：返回一个 ServerOption，用于设置服务器连接的凭据。用于 grpc.NewServer(opt ...ServerOption) 为 gRPC Server 设置连接选项
