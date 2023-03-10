@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/credentials"
 	pb "gprc-example/proto"
 	"log"
 	"strconv"
@@ -12,8 +12,14 @@ import (
 const PORT = 9001
 
 func main() {
+	// 根据客户端输入的证书文件和密钥构造 TLS 凭证
+	c, err := credentials.NewClientTLSFromFile("../../conf/server.pem", "grpc-example")
+	if err != nil {
+		log.Fatalf("credentials.NewClientTLSFromFile err: %v", err)
+	}
+
 	// 连接server
-	conn, err := grpc.Dial(":"+strconv.Itoa(PORT), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(":"+strconv.Itoa(PORT), grpc.WithTransportCredentials(c))
 	if err != nil {
 		log.Fatalf("grpc.Dial err:%v", err)
 	}
