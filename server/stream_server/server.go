@@ -49,11 +49,33 @@ func (s *StreamService) Record(stream pb.StreamService_RecordServer) error {
 		}
 		log.Printf("stream.Recv pt.name: %v, pt.value: %d", r.Pt.Name, r.Pt.Value)
 	}
-	return nil
 }
 
 func (s *StreamService) Route(stream pb.StreamService_RouteServer) error {
-	return nil
+	n := 0
+	for {
+		err := stream.Send(&pb.StreamResponse{
+			Pt: &pb.StreamPoint{
+				Name:  "grpc stream client: Route",
+				Value: int32(n),
+			},
+		})
+		if err != nil {
+			return err
+		}
+
+		r, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+
+		n++
+
+		log.Printf("stream.Recv pt.name: %s, pt.value: %d", r.Pt.Name, r.Pt.Value)
+	}
 }
 
 const PORT = 9002
