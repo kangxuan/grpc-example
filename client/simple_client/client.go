@@ -2,13 +2,10 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	pb "gprc-example/proto"
 	"log"
-	"os"
 	"strconv"
 )
 
@@ -21,28 +18,28 @@ func main() {
 	//	log.Fatalf("credentials.NewClientTLSFromFile err: %v", err)
 	//}
 
-	cert, err := tls.LoadX509KeyPair("../../conf/client/client.pem", "../../conf/client/client.key")
-	if err != nil {
-		log.Fatalf("tls.LoadX509KeyPair err: %v", err)
-	}
-
-	certPool := x509.NewCertPool()
-	ca, err := os.ReadFile("../../ca.pem")
-	if err != nil {
-		log.Fatalf("os.ReadFile err: %v", err)
-	}
-
-	if ok := certPool.AppendCertsFromPEM(ca); !ok {
-		log.Fatalf("certPool.AppendCertsFromPEM err")
-	}
-
-	c := credentials.NewTLS(&tls.Config{
-		Certificates: []tls.Certificate{cert},
-		ServerName:   "grpc-example",
-		RootCAs:      certPool,
-	})
+	//cert, err := tls.LoadX509KeyPair("../../conf/client/client.pem", "../../conf/client/client.key")
+	//if err != nil {
+	//	log.Fatalf("tls.LoadX509KeyPair err: %v", err)
+	//}
+	//
+	//certPool := x509.NewCertPool()
+	//ca, err := os.ReadFile("../../conf/ca.pem")
+	//if err != nil {
+	//	log.Fatalf("os.ReadFile err: %v", err)
+	//}
+	//
+	//if ok := certPool.AppendCertsFromPEM(ca); !ok {
+	//	log.Fatalf("certPool.AppendCertsFromPEM err")
+	//}
+	//
+	//c := credentials.NewTLS(&tls.Config{
+	//	Certificates: []tls.Certificate{cert},
+	//	ServerName:   "grpc-example",
+	//	RootCAs:      certPool,
+	//})
 	// 连接server
-	conn, err := grpc.Dial(":"+strconv.Itoa(PORT), grpc.WithTransportCredentials(c))
+	conn, err := grpc.Dial(":"+strconv.Itoa(PORT), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("grpc.Dial err:%v", err)
 	}
