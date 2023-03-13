@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package book;
+
+option go_package = "grpc-example/pb/book";
+
+message Price {
+  int64 market_price = 1; // 建议使用下划线的命名方式
+  int64 sale_price = 2;
+}

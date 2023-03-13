@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package book;
+
+option go_package = "grpc-example/pb/book";
+
+// 引入同目录下的protobuf文件（注意起始位置是proto_path）
+import "book/price.proto";
+// 引入其他目录下的protobuf文件
+import "author/author.proto";
+
+message Book {
+  string title = 1;
+  Price price = 2; // 在同一目录下不需要带package前缀
+  author.Info authorInfo = 3; // 不同目录下需要带package前缀
+}
