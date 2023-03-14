@@ -10,10 +10,22 @@ import "book/price.proto";
 import "author/author.proto";
 // 引入google/protobuf/下文件
 import "google/protobuf/timestamp.proto";
+// 引入google/api/annotations.proto文件
+import "google/api/annotations.proto";
 
 message Book {
   string title = 1;
-  Price price = 2; // 在同一目录下不需要带package前缀
-  author.Info authorInfo = 3; // 不同目录下需要带package前缀
-  google.protobuf.Timestamp date = 4;
+  Price price = 2;
+  author.Info authorInfo = 3;  // 需要带package前缀
+  // Timestamp是大写T!大写T!大写T!
+  google.protobuf.Timestamp date = 4;  // 注意包名前缀
+}
+
+service BookService{
+  rpc Create(Book)returns(Book){
+    option (google.api.http) = {
+      post: "/v1/book"
+      body: "*"
+    };
+  };
 }
